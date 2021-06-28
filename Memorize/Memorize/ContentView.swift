@@ -26,41 +26,8 @@ struct ContentView: View {
 				}
 				.foregroundColor(.pink)
 			}
-
-			Spacer()
-
-			HStack {
-				removeCard
-				Spacer()
-				shuffleEmoji
-				Spacer()
-				addCard
-			}
-			.font(.largeTitle)
-			.padding(.horizontal )
-
 		}
 		.padding(.all)
-	}
-}
-
-
-extension ContentView {
-	private var removeCard: some View {
-		Button { humansCounter -= 1 } label: {
-			Image(systemName: "minus.circle")
-		}
-		.disabled(humansCounter < 2)
-	}
-
-	private var addCard: some View {
-		Button { humansCounter += 1 } label: {
-			Image(systemName: "plus.circle")
-		}
-	}
-
-	private var shuffleEmoji: some View {
-		Button("Shuffle") { humans.shuffle() }
 	}
 }
 
