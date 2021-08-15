@@ -8,51 +8,52 @@
 import SwiftUI
 
 struct ContentView: View {
-	private var columns: [GridItem] = [
+	
+	@ObservedObject var viewModel: EmojiMemoryGame
+	
+	private let columns: [GridItem] = [
 		.init(.adaptive(minimum: 100, maximum: 120))
 	]
-
-	@State var humansCounter = 6
-	@State var humans: [String] = ["😵‍💫", "😛", "👩🏼‍💻", "🥷🏿", "🐈", "🦔", "✈️"]
-
+	
 	var body: some View {
-		VStack(spacing: 25) {
-			ScrollView {
-				LazyVGrid(columns: columns) {
-					ForEach(humans[0...humansCounter], id: \.self) { human in
-						CardView(emojis: human)
-							.aspectRatio(contentMode: .fit)
-					}
+		ScrollView {
+			LazyVGrid(columns: columns) {
+				ForEach(viewModel.cards) { card in
+					CardView(card) 
+						.aspectRatio(contentMode: .fit)
+						.onTapGesture { viewModel.choose(card) }
 				}
-				.foregroundColor(.pink)
 			}
 		}
+		.foregroundColor(.pink)
 		.padding(.all)
 	}
 }
 
 
 struct CardView: View {
-	let emojis: String
-	@State var isFaceUp: Bool = false
-
+	private let radius: CGFloat = 25
+	private let lineWidth: CGFloat = 3
+	private let card: MemoryGame<String>.Card
+	
 	var body: some View {
-
 		ZStack {
-			let shape = RoundedRectangle(cornerRadius: 25.0)
-
-			switch isFaceUp {
-				case true:
-					shape.fill().foregroundColor(.white)
-					shape.strokeBorder(lineWidth: 3)
-					Text(emojis).font(.largeTitle)
-				case false:
-					shape.fill()
+			let shape = RoundedRectangle(cornerRadius: radius)
+			
+			if card.isFaceUp {
+				shape.fill().foregroundColor(.white)
+				shape.strokeBorder(lineWidth: lineWidth)
+				Text(card.content).font(.largeTitle)
+			} else if card.isMatched {
+				shape.opacity(0)
+			} else {
+				shape.fill()
 			}
 		}
-		.onTapGesture {
-			isFaceUp.toggle()
-		}
+	}
+	
+	init(_ card: MemoryGame<String>.Card) {
+		self.card = card
 	}
 }
 
@@ -75,5 +76,10 @@ struct CardView: View {
 
 
 struct ContentView_Previews: PreviewProvider {
-	static var previews: some View { ContentView() }
+	static var previews: some View {
+		let game = EmojiMemoryGame()
+		
+		ContentView(viewModel: game)
+		
+	}
 }
