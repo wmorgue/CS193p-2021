@@ -9,22 +9,17 @@ import SwiftUI
 
 struct MemoryGameView: View {
 	
+	private let cardRatio: CGFloat = 2/2.2
 	@ObservedObject var game: EmojiMemoryGame
 	
-	private let cardRatio: CGFloat = 2/2.2
-	
-	private let columns: [GridItem] = [
-		.init(.adaptive(minimum: 100))
-	]
-	
 	var body: some View {
-		ScrollView {
-			LazyVGrid(columns: columns) {
-				ForEach(game.cards) { card in
-					CardView(card) 
-						.aspectRatio(cardRatio, contentMode: .fit)
-						.onTapGesture { game.choose(card) }
-				}
+		AspectVGrid(game.cards, cardRatio) { card in
+			if card.isMatched && card.isFaceUp {
+				Rectangle().opacity(0)
+			} else {
+				CardView(card)
+					.padding(4)
+					.onTapGesture { game.choose(card) }
 			}
 		}
 		.foregroundColor(.pink)
@@ -36,7 +31,8 @@ struct MemoryGameView: View {
 struct ContentView_Previews: PreviewProvider {
 	static var previews: some View {
 		let game = EmojiMemoryGame()
-		MemoryGameView(game: game)
+		game.choose(game.cards.first!)
+		return MemoryGameView(game: game)
 			.preferredColorScheme(.dark)
 			.previewDisplayName("Game")
 	}
