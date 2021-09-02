@@ -9,33 +9,34 @@ import SwiftUI
 
 struct CardView: View {
 	private let card: EmojiMemoryGame.Card
-
+	
 	init(_ card: EmojiMemoryGame.Card) { self.card = card }
 	
 	var body: some View {
 		GeometryReader { proxy in
 			ZStack {
-				let shape = RoundedRectangle(cornerRadius: Const.radius)
-				
-				if card.isFaceUp {
-					shape.fill().foregroundColor(.white)
-					shape.strokeBorder(lineWidth: Const.lineWidth)
-					Pie(startAngle: Const.startAngle, endAngle: Const.endAngle).padding(5).opacity(0.4)
-					Text(card.content).font(Const.geometryFont(proxy.size))
-				} else if card.isMatched {
-					shape.opacity(0)
-				} else {
-					shape.fill()
-				}
+				Pie(startAngle: Const.startAngle, endAngle: Const.endAngle)
+					.padding(5)
+					.opacity(0.4)
+				Text(card.content)
+					.rotationEffect(Angle.degrees(card.isMatched ? 360 : 0)) 
+					.animation(Animation.linear.repeatForever(autoreverses: false))
+					.font(.system(size: Const.fontSize))
+					.scaleEffect(scale(thatFits: proxy.size))
 			}
+			.cardify(isFaceUp: card.isFaceUp)
 		}
 	}
 }
 
 extension CardView {
+	private func scale(thatFits size: CGSize) -> CGFloat {
+		min(size.width, size.height) / (Const.fontSize / Const.fontScale)
+	}
+	
 	struct Const {
-		static let radius: CGFloat = 10
-		static let lineWidth: CGFloat = 3
+		static let fontSize: CGFloat = 32
+		static let fontScale: CGFloat = 0.7
 		static let startAngle: Angle = .degrees(0-90)
 		static let endAngle: Angle = .degrees(110-90)
 		static let geometryFont: (CGSize) -> Font = { size in

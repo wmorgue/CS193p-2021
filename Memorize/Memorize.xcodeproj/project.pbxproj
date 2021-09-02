@@ -15,6 +15,7 @@
 		7328AA3B2689E34D00D94CDB /* EmojiMemoryGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7328AA3A2689E34D00D94CDB /* EmojiMemoryGame.swift */; };
 		733D1EFB26D4F67D00631654 /* AspectVGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 733D1EFA26D4F67D00631654 /* AspectVGrid.swift */; };
 		7369E37026D5466300DF24E8 /* Pie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7369E36F26D5466300DF24E8 /* Pie.swift */; };
+		73BD13F726DF80AB00AE43D3 /* Cardify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BD13F626DF80AB00AE43D3 /* Cardify.swift */; };
 		73FF5DE026D165AC00D759BC /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73FF5DDF26D165AC00D759BC /* CardView.swift */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +30,7 @@
 		7328AA3A2689E34D00D94CDB /* EmojiMemoryGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiMemoryGame.swift; sourceTree = "<group>"; };
 		733D1EFA26D4F67D00631654 /* AspectVGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AspectVGrid.swift; sourceTree = "<group>"; };
 		7369E36F26D5466300DF24E8 /* Pie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pie.swift; sourceTree = "<group>"; };
+		73BD13F626DF80AB00AE43D3 /* Cardify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cardify.swift; sourceTree = "<group>"; };
 		73FF5DDF26D165AC00D759BC /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				730F925F2665150F00EA1516 /* MemoryGameView.swift */,
+				73BD13F626DF80AB00AE43D3 /* Cardify.swift */,
 				73FF5DDF26D165AC00D759BC /* CardView.swift */,
 				7369E36F26D5466300DF24E8 /* Pie.swift */,
 				733D1EFA26D4F67D00631654 /* AspectVGrid.swift */,
@@ -171,6 +174,7 @@
 			files = (
 				7328AA392689DFBD00D94CDB /* MemoryGame.swift in Sources */,
 				730F92602665150F00EA1516 /* MemoryGameView.swift in Sources */,
+				73BD13F726DF80AB00AE43D3 /* Cardify.swift in Sources */,
 				733D1EFB26D4F67D00631654 /* AspectVGrid.swift in Sources */,
 				730F925E2665150F00EA1516 /* MemorizeApp.swift in Sources */,
 				7369E37026D5466300DF24E8 /* Pie.swift in Sources */,

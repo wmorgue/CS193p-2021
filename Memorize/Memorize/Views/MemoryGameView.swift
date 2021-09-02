@@ -14,7 +14,7 @@ struct MemoryGameView: View {
 	
 	var body: some View {
 		AspectVGrid(game.cards, cardRatio) { card in
-			if card.isMatched && card.isFaceUp {
+			if card.isMatched && !card.isFaceUp {
 				Rectangle().opacity(0)
 			} else {
 				CardView(card)
@@ -33,7 +33,7 @@ struct ContentView_Previews: PreviewProvider {
 		let game = EmojiMemoryGame()
 		game.choose(game.cards.first!)
 		return MemoryGameView(game: game)
-			.preferredColorScheme(.dark)
+			.preferredColorScheme(.light)
 			.previewDisplayName("Game")
 	}
 }
