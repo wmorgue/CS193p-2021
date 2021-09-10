@@ -124,14 +124,3 @@ extension MemoryGame {
 		}
 	}
 }
-
-
-extension Array {
-	var oneAndOnly: Element? {
-		if count == 1 {
-			return first
-		} else {
-			return nil
-		}
-	}
-}

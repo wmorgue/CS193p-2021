@@ -7,9 +7,8 @@
 
 import SwiftUI
 
-
 struct Cardify: AnimatableModifier {
-
+	
 	/// In degrees
 	var rotation: Double
 	var animatableData: Double {
