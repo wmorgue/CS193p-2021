@@ -13,6 +13,7 @@ class EmojiDocument: ObservableObject {
 	
 	init() {
 		emojiArt = Model()
+		emojiArt.addEmoji("", at: (x: 0, y: 0), size: 68)
 	}
 	
 	/// Return emojis from `Model`.
