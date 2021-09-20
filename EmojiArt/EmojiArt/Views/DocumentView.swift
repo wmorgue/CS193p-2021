@@ -22,14 +22,23 @@ struct DocumentView: View {
 	var documentBody: some View {
 		GeometryReader { proxy in
 			ZStack {
-				Color.white
-				ForEach(document.emojis) { emoji in
-					Text(emoji.text)
-						.font(.system(size: fontSize(for: emoji)))
-						.position(position(for: emoji, in: proxy))
+				Color.white.overlay(
+					OptionalImage(uiImage: document.backgroundImage)
+						.position(convertFromEmojiCoordinates((0,0), in: proxy))
+				)
+				
+				if document.backgroundImageFetchStatus == .fetching {
+					ProgressView()
+						.scaleEffect(2)
+				} else {
+					ForEach(document.emojis) { emoji in
+						Text(emoji.text)
+							.font(.system(size: fontSize(for: emoji)))
+							.position(position(for: emoji, in: proxy))
+					}
 				}
 			}
-			.onDrop(of: [.plainText], isTargeted: nil) { provider, location in
+			.onDrop(of: [.plainText, .url, .image], isTargeted: nil) { provider, location in
 				dropOnView(provider: provider, at: location, in: proxy)
 			}
 		}
@@ -50,15 +59,31 @@ struct DocumentView: View {
 	
 	//MARK: Methods
 	private func dropOnView(provider: [NSItemProvider], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
-		return provider.loadObjects(ofType: String.self) { string in
-			if let emoji = string.first, emoji.isEmoji {
-				document.addEmoji(
-					String(emoji),
-					at: convertToEmojiCoordinate(location, in: geometry),
-					size: defaultFontSize
-				)
+		var found = provider.loadObjects(ofType: URL.self) { url in
+			document.setBackground(.url(url.imageURL))
+		}
+		
+		if !found {
+			found = provider.loadObjects(ofType: UIImage .self) { image in
+				if let data = image.jpegData(compressionQuality: 1.0) {
+					document.setBackground(.imageData(data))
+				}
 			}
 		}
+		
+		if !found {
+			found = provider.loadObjects(ofType: String.self) { string in
+				if let emoji = string.first, emoji.isEmoji {
+					document.addEmoji(
+						String(emoji),
+						at: convertToEmojiCoordinate(location, in: geometry),
+						size: defaultFontSize
+					)
+				}
+			}
+		}
+		
+		return found
 	}
 	
 	private func position(for emoji: Model.Emoji, in geometry: GeometryProxy) -> CGPoint {

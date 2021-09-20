@@ -9,12 +9,18 @@ import SwiftUI
 
 /// Reactive emoji document class.
 class EmojiDocument: ObservableObject {
-	@Published private(set) var emojiArt: Model
+	@Published var backgroundImage: UIImage?
+	@Published var backgroundImageFetchStatus: FetchStatus = .idle
 	
-	init() {
-		emojiArt = Model()
-		emojiArt.addEmoji("", at: (x: 0, y: 0), size: 68)
+	@Published private(set) var emojiArt: Model {
+		didSet {
+			if emojiArt.background != oldValue.background {
+				fetchBackgroundImageDataIfNecessary()
+			}
+		}
 	}
+	
+	init() { emojiArt = Model() }
 	
 	/// Return emojis from `Model`.
 	/// Syntax sugar.
@@ -24,12 +30,45 @@ class EmojiDocument: ObservableObject {
 	/// Syntax sugar.
 	var backgrounds: Model.Background { emojiArt.background }
 	
+	private func fetchBackgroundImageDataIfNecessary() {
+		backgroundImage = nil
+		
+		switch emojiArt.background {
+			case .url(let url):
+				backgroundImageFetchStatus = .fetching
+				
+				DispatchQueue.global(qos: .userInitiated).async {
+					let imageData = try? Data(contentsOf: url)
+					DispatchQueue.main.async { [weak self] in
+						if self?.emojiArt.background == Model.Background.url(url) {
+							
+							self?.backgroundImageFetchStatus = .idle
+							if imageData != nil {
+								self?.backgroundImage = UIImage(data: imageData!)
+							}
+						}
+					}
+				}
+			case .imageData(let data):
+				backgroundImage = UIImage(data: data)
+			case .blank:
+				break // Do nothing
+		}
+	}
+	
+	
+	//MARK: FetchStatus
+	enum FetchStatus {
+		case idle
+		case fetching
+	}
 	
 	//MARK: Intent(s)
 	
 	/// Set background.
 	func setBackground(_ background: Model.Background) {
 		emojiArt.background = background
+		print("Set a background: \(background)")
 	}
 	
 	/// Adding a new Emoji.
