@@ -7,11 +7,28 @@
 
 import Foundation
 
-struct Model {
+struct Model: Codable {
 	var emojis: [Emoji] = []
 	var background = Background.blank
 	
+	/// Empty init.
 	init() {}
+	
+	/// Init model with URL and throw it to JSON.
+	init(url: URL) throws {
+		let data = try Data(contentsOf: url)
+		self = try Model(json: data)
+	}
+	
+	/// Init model with JSON.
+	init(json: Data) throws {
+		self = try JSONDecoder().decode(Model.self, from: json)
+	}
+	
+	/// Encode out model to JSON output.
+	func json() throws -> Data {
+		try JSONEncoder().encode(self)
+	}
 	
 	private var uniqEmoji = 0
 	mutating func addEmoji(_ text: String, at location: (x: Int, y: Int), size: Int) {
@@ -22,7 +39,7 @@ struct Model {
 
 
 extension Model {
-	struct Emoji: Identifiable, Hashable {
+	struct Emoji: Identifiable, Hashable, Codable {
 		let text: String
 		var x,y: Int
 		var size: Int
