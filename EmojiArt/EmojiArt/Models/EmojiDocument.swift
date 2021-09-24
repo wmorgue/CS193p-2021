@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Reactive emoji document class.
-class EmojiDocument: ObservableObject {
+final class EmojiDocument: ObservableObject {
 	@Published var backgroundImage: UIImage?
 	@Published var backgroundImageFetchStatus: FetchStatus = .idle
 	
@@ -38,8 +38,9 @@ class EmojiDocument: ObservableObject {
 	/// Syntax sugar.
 	var backgrounds: Model.Background { emojiArt.background }
 	
+	private var autoSaveTimer: Timer?
 	
-	//MARK: Intent(s)
+	//MARK: - Intent(s)
 	
 	private func save(to url: URL) {
 		let thisFunc = "\(String(describing: self)).\(#function) at \(#line)"
@@ -60,8 +61,6 @@ class EmojiDocument: ObservableObject {
 			save(to: url)
 		}
 	}
-	
-	private var autoSaveTimer: Timer?
 	
 	private func scheduleAutoSave() {
 		autoSaveTimer?.invalidate()
@@ -129,7 +128,7 @@ class EmojiDocument: ObservableObject {
 
 
 extension EmojiDocument {
-	//MARK: FetchStatus
+	//MARK: - FetchStatus
 	enum FetchStatus {
 		case idle
 		case fetching
