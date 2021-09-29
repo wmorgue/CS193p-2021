@@ -24,7 +24,7 @@ struct DocumentView: View {
 	var body: some View {
 		VStack(spacing: 0) {
 			documentBody
-			palette
+			paletteChooser
 		}
 	}
 	
@@ -60,16 +60,12 @@ struct DocumentView: View {
 	}
 	
 	//MARK: Palette on bottom with button
-	var palette: some View {
-		ScrollingPaletteView(emojis: testEmojis)
-			.font(.system(size: defaultFontSize))
+	var paletteChooser: some View {
+		PaletteChooser()
+//			.font(.system(size: defaultFontSize))
 			.padding(.top)
 			.background(.thinMaterial)
 	}
-	
-	
-	//MARK: Some random test emojis
-	private let testEmojis = "😀😷🦠💉👻👀🐶🌲🌎🌞🔥🍎⚽️🚗🚓🚲🛩🚁🚀🛸🏠⌚️🎁🗝🔐❤️⛔️❌❓✅⚠️🎶➕➖🏳️"
 	
 	
 	//MARK: Methods
