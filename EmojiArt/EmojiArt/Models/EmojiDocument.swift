@@ -86,6 +86,9 @@ final class EmojiDocument: ObservableObject {
 							if imageData != nil {
 								self?.backgroundImage = UIImage(data: imageData!)
 							}
+							if self?.backgroundImage == nil {
+								self?.backgroundImageFetchStatus = .failed(url)
+							}
 						}
 					}
 				}
@@ -129,9 +132,10 @@ final class EmojiDocument: ObservableObject {
 
 extension EmojiDocument {
 	//MARK: - FetchStatus
-	enum FetchStatus {
+	enum FetchStatus: Equatable {
 		case idle
 		case fetching
+		case failed(URL)
 	}
 	
 	private struct Autosave {

@@ -11,6 +11,7 @@ struct DocumentView: View {
 	private let defaultFontSize: CGFloat = 42
 	@State private var steadyZoomScale: CGFloat = 1
 	@State private var steadyPanOffset: CGSize = .zero
+	@State private var alertToShow: IdentifiableAlert?
 	@GestureState private var magnifyBy: CGFloat = 1
 	@GestureState private var gesturePanOffset: CGSize = .zero
 	@ObservedObject var document: EmojiDocument
@@ -56,18 +57,29 @@ struct DocumentView: View {
 				dropOnView(provider: provider, at: location, in: proxy)
 			}
 			.gesture(panGesture().simultaneously(with: zoomGesture()))
+			.alert(item: $alertToShow) { alert in
+				alert.alert()
+			}
+			.onChange(of: document.backgroundImageFetchStatus) { status in
+				switch status {
+					case .failed(let url): showBackgroundImageFetchFailedAlet(url)
+					default: break
+				}
+			}
 		}
 	}
 	
 	//MARK: Palette on bottom with button
 	var paletteChooser: some View {
 		PaletteChooser()
-//			.font(.system(size: defaultFontSize))
+		//			.font(.system(size: defaultFontSize))
 			.padding(.top)
 			.background(.thinMaterial)
 	}
-	
-	
+}
+
+
+extension DocumentView {
 	//MARK: Methods
 	private func dropOnView(provider: [NSItemProvider], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
 		var found = provider.loadObjects(ofType: URL.self) { url in
@@ -165,8 +177,17 @@ struct DocumentView: View {
 	private func fontSize(for emoji: Model.Emoji) -> CGFloat {
 		CGFloat(emoji.size)
 	}
+	
+	// Alert when background image doesn't loading
+	private func showBackgroundImageFetchFailedAlet(_ url: URL) {
+		alertToShow = IdentifiableAlert(id: "fetch failed: " + url.absoluteString, alert: {
+			Alert(
+				title: Text("Background image fetch"),
+				message: Text("Failed to fetch image from: \(url)"),
+				dismissButton: .cancel())
+		})
+	}
 }
-
 
 
 struct ContentView_Previews: PreviewProvider {

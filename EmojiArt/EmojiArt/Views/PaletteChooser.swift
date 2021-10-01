@@ -11,7 +11,10 @@ struct PaletteChooser: View {
 	var emojiFontSize: CGFloat = 40
 	var emojiFont: Font { .system(size: emojiFontSize) }
 	
+	//	@State private var editing = false
+	@State private var managing = false
 	@State private var chosenPaletteIndex = 0
+	@State private var paletteToEdit: Palette?
 	@EnvironmentObject var store: PaletteStore
 	
 	var body: some View {
@@ -48,16 +51,24 @@ extension PaletteChooser {
 		// New palette
 		AnimatedActionButton(title: "New", systemImage: "plus") {
 			store.insertPalette(named: "New palette", emojis: nil, at: chosenPaletteIndex)
+			paletteToEdit = store.palette(at: chosenPaletteIndex)
+			//			editing.toggle()
 		}
 		
 		// Edit palette
 		AnimatedActionButton(title: "Edit", systemImage: "pencil.and.outline") {
-			
+			paletteToEdit = store.palette(at: chosenPaletteIndex)
+			//			editing.toggle()
 		}
-
+		
 		// Delete palette
 		AnimatedActionButton(title: "Delete", systemImage: "trash") {
 			chosenPaletteIndex = store.removePalette(at: chosenPaletteIndex)
+		}
+		
+		// Palette Manager
+		AnimatedActionButton(title: "Manage", systemImage: "slider.horizontal.3") {
+			managing.toggle()
 		}
 		
 		// Go to
@@ -105,5 +116,14 @@ extension PaletteChooser {
 		}
 		.id(palette.id)
 		.transition(rollTransition)
+		.sheet(isPresented: $managing) {
+			PaletteManager()
+		}
+		.popover(item: $paletteToEdit) { palette in
+			PaletteEditor(palette: $store.palettes[palette])
+		}
+		//		.popover(isPresented: $editing) {
+		//			PaletteEditor(palette: $store.palettes[chosenPaletteIndex])
+		//		}
 	}
 }
