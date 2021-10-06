@@ -66,6 +66,9 @@ struct DocumentView: View {
 					default: break
 				}
 			}
+			.onReceive(document.$backgroundImage) { image in
+				zoomToFit(image, in: proxy.size)
+			}
 		}
 	}
 	
@@ -182,7 +185,7 @@ extension DocumentView {
 	private func showBackgroundImageFetchFailedAlet(_ url: URL) {
 		alertToShow = IdentifiableAlert(id: "fetch failed: " + url.absoluteString, alert: {
 			Alert(
-				title: Text("Background image fetch"),
+				title: Text("Failed to loading image"),
 				message: Text("Failed to fetch image from: \(url)"),
 				dismissButton: .cancel())
 		})

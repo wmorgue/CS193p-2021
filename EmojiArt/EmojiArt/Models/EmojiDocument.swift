@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Reactive emoji document class.
 final class EmojiDocument: ObservableObject {
@@ -39,6 +40,7 @@ final class EmojiDocument: ObservableObject {
 	var backgrounds: Model.Background { emojiArt.background }
 	
 	private var autoSaveTimer: Timer?
+	private var backgroundImageCancellable: AnyCancellable?
 	
 	//MARK: - Intent(s)
 	
@@ -75,23 +77,41 @@ final class EmojiDocument: ObservableObject {
 		
 		switch emojiArt.background {
 			case .url(let url):
+				// Set fetching status and cancel previos long-lag D'n'D transaction's
 				backgroundImageFetchStatus = .fetching
+				backgroundImageCancellable?.cancel()
 				
-				DispatchQueue.global(qos: .userInitiated).async {
-					let imageData = try? Data(contentsOf: url)
-					DispatchQueue.main.async { [weak self] in
-						if self?.emojiArt.background == Model.Background.url(url) {
-							
-							self?.backgroundImageFetchStatus = .idle
-							if imageData != nil {
-								self?.backgroundImage = UIImage(data: imageData!)
-							}
-							if self?.backgroundImage == nil {
-								self?.backgroundImageFetchStatus = .failed(url)
-							}
-						}
+				// Then create a new session
+				let session = URLSession.shared
+				let publisher = session
+					.dataTaskPublisher(for: url)
+					.map{ (data, _) in UIImage(data: data) }
+					.replaceError(with: nil)
+					.receive(on: DispatchQueue.main)
+				
+				backgroundImageCancellable = publisher
+					.sink { [weak self] image in
+						self?.backgroundImage = image
+						self?.backgroundImageFetchStatus = (image != nil) ? .idle : .failed(url)
+						
 					}
-				}
+				//					.assign(to: \EmojiDocument.backgroundImage, on: self)
+				
+				//				DispatchQueue.global(qos: .userInitiated).async {
+				//					let imageData = try? Data(contentsOf: url)
+				//					DispatchQueue.main.async { [weak self] in
+				//						if self?.emojiArt.background == Model.Background.url(url) {
+				//
+				//							self?.backgroundImageFetchStatus = .idle
+				//							if imageData != nil {
+				//								self?.backgroundImage = UIImage(data: imageData!)
+				//							}
+				//							if self?.backgroundImage == nil {
+				//								self?.backgroundImageFetchStatus = .failed(url)
+				//							}
+				//						}
+				//					}
+				//				}
 			case .imageData(let data):
 				backgroundImage = UIImage(data: data)
 			case .blank:
