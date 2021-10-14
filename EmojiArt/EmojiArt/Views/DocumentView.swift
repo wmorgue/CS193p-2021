@@ -8,14 +8,19 @@
 import SwiftUI
 
 struct DocumentView: View {
-	private let defaultFontSize: CGFloat = 42
-	@State private var steadyZoomScale: CGFloat = 1
-	@State private var steadyPanOffset: CGSize = .zero
+	@SceneStorage("DocumentView.steadyZoomScale")
+	private var steadyZoomScale: CGFloat = 1
+	@SceneStorage("DocumentView.steadyPanOffset")
+	private var steadyPanOffset: CGSize = .zero
+	
+	@State private var autoZoom = false
 	@State private var alertToShow: IdentifiableAlert?
 	@GestureState private var magnifyBy: CGFloat = 1
 	@GestureState private var gesturePanOffset: CGSize = .zero
 	@ObservedObject var document: EmojiDocument
+	@Environment(\.undoManager) var undoManager
 	
+	@ScaledMetric var defaultFontSize: CGFloat = 42
 	private var zoomScale: CGFloat { steadyZoomScale * magnifyBy }
 	private var panOffset: CGSize {
 		(steadyPanOffset + gesturePanOffset) * zoomScale
@@ -67,7 +72,15 @@ struct DocumentView: View {
 				}
 			}
 			.onReceive(document.$backgroundImage) { image in
-				zoomToFit(image, in: proxy.size)
+				if autoZoom {
+					zoomToFit(image, in: proxy.size)
+				}
+			}
+			.toolbar {
+				UndoButton(
+					undo: undoManager?.optionalUndoMenuItemTitle,
+					redo: undoManager?.optionalRedoMenuItemTitle
+					)
 			}
 		}
 	}
@@ -86,13 +99,15 @@ extension DocumentView {
 	//MARK: Methods
 	private func dropOnView(provider: [NSItemProvider], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
 		var found = provider.loadObjects(ofType: URL.self) { url in
-			document.setBackground(.url(url.imageURL))
+			autoZoom = true
+			document.setBackground(.url(url.imageURL), undoManager: undoManager)
 		}
 		
 		if !found {
 			found = provider.loadObjects(ofType: UIImage .self) { image in
 				if let data = image.jpegData(compressionQuality: 1.0) {
-					document.setBackground(.imageData(data))
+					autoZoom = true
+					document.setBackground(.imageData(data), undoManager: undoManager)
 				}
 			}
 		}
@@ -103,7 +118,8 @@ extension DocumentView {
 					document.addEmoji(
 						String(emoji),
 						at: convertToEmojiCoordinate(location, in: geometry),
-						size: defaultFontSize / zoomScale
+						size: defaultFontSize / zoomScale,
+						undoManager: undoManager
 					)
 				}
 			}

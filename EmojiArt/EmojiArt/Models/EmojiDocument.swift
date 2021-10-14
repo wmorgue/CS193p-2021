@@ -7,29 +7,41 @@
 
 import SwiftUI
 import Combine
+import UniformTypeIdentifiers
 
 /// Reactive emoji document class.
-final class EmojiDocument: ObservableObject {
+final class EmojiDocument: ReferenceFileDocument {
+	static var readableContentTypes = [UTType.emojiArt]
+	static var writeableContentTypes = [UTType.emojiArt]
+	
+	init() {
+		emojiArt = Model()
+	}
+	
+	init(configuration: ReadConfiguration) throws {
+		if let data = configuration.file.regularFileContents {
+			emojiArt = try Model(json: data)
+			fetchBackgroundImageDataIfNecessary()
+		} else {
+			throw CocoaError(.fileReadCorruptFile)
+		}
+	}
+	
 	@Published var backgroundImage: UIImage?
 	@Published var backgroundImageFetchStatus: FetchStatus = .idle
 	
 	@Published private(set) var emojiArt: Model {
 		didSet {
-			scheduleAutoSave()
 			if emojiArt.background != oldValue.background {
 				fetchBackgroundImageDataIfNecessary()
 			}
 		}
 	}
 	
-	init() {
-		if let url = Autosave.url, let autoSavedEmoji = try? Model(url: url) {
-			emojiArt = autoSavedEmoji
-			fetchBackgroundImageDataIfNecessary()
-		} else {
-			emojiArt = Model()
-		}
-	}
+	
+	func snapshot(contentType: UTType) throws -> Data { try emojiArt.json() }
+	func fileWrapper(snapshot: Data, configuration: WriteConfiguration) throws -> FileWrapper { FileWrapper(regularFileWithContents: snapshot) }
+	
 	
 	/// Return emojis from `Model`.
 	/// Syntax sugar.
@@ -39,37 +51,9 @@ final class EmojiDocument: ObservableObject {
 	/// Syntax sugar.
 	var backgrounds: Model.Background { emojiArt.background }
 	
-	private var autoSaveTimer: Timer?
 	private var backgroundImageCancellable: AnyCancellable?
 	
 	//MARK: - Intent(s)
-	
-	private func save(to url: URL) {
-		let thisFunc = "\(String(describing: self)).\(#function) at \(#line)"
-		
-		do {
-			let data: Data = try emojiArt.json()
-			print("Debug data: ", String(data: data, encoding: .utf8) ?? "nil")
-			try data.write(to: url)
-		} catch let encodingError where encodingError is EncodingError {
-			print(thisFunc, "Couldn't encode Model as JSON 'cause: \(encodingError.localizedDescription)")
-		} catch {
-			print(thisFunc, error.localizedDescription)
-		}
-	}
-	
-	private func autoSave() {
-		if let url = Autosave.url {
-			save(to: url)
-		}
-	}
-	
-	private func scheduleAutoSave() {
-		autoSaveTimer?.invalidate()
-		autoSaveTimer = Timer.scheduledTimer(withTimeInterval: Autosave.coalescingInterval, repeats: false) { _ in
-			self.autoSave()
-		}
-	}
 	
 	/// Fetch Background Image Data async
 	private func fetchBackgroundImageDataIfNecessary() {
@@ -93,25 +77,7 @@ final class EmojiDocument: ObservableObject {
 					.sink { [weak self] image in
 						self?.backgroundImage = image
 						self?.backgroundImageFetchStatus = (image != nil) ? .idle : .failed(url)
-						
 					}
-				//					.assign(to: \EmojiDocument.backgroundImage, on: self)
-				
-				//				DispatchQueue.global(qos: .userInitiated).async {
-				//					let imageData = try? Data(contentsOf: url)
-				//					DispatchQueue.main.async { [weak self] in
-				//						if self?.emojiArt.background == Model.Background.url(url) {
-				//
-				//							self?.backgroundImageFetchStatus = .idle
-				//							if imageData != nil {
-				//								self?.backgroundImage = UIImage(data: imageData!)
-				//							}
-				//							if self?.backgroundImage == nil {
-				//								self?.backgroundImageFetchStatus = .failed(url)
-				//							}
-				//						}
-				//					}
-				//				}
 			case .imageData(let data):
 				backgroundImage = UIImage(data: data)
 			case .blank:
@@ -120,32 +86,52 @@ final class EmojiDocument: ObservableObject {
 	}
 	
 	/// Set background.
-	func setBackground(_ background: Model.Background) {
-		emojiArt.background = background
-		
-#if DEBUG
-		print("Set a background: \(background)")
-#endif
+	func setBackground(_ background: Model.Background, undoManager: UndoManager?) {
+		undoablyPerform(operation: "Set background", with: undoManager) {
+			emojiArt.background = background
+			
+			#if DEBUG
+			print("Set a background: \(background)")
+			#endif
+		}
 	}
 	
 	/// Adding a new Emoji.
-	func addEmoji(_ text: String, at location: (x: Int, y: Int), size: CGFloat) {
-		emojiArt.addEmoji(text, at: location, size: Int(size))
+	func addEmoji(_ emoji: String, at location: (x: Int, y: Int), size: CGFloat, undoManager: UndoManager?) {
+		undoablyPerform(operation: "Add \(emoji)", with: undoManager) {
+			emojiArt.addEmoji(emoji, at: location, size: Int(size))
+		}
 	}
 	
 	/// Move emoji on screen
-	func moveEmoji(_ emoji: Model.Emoji, by offset: CGSize) {
+	func moveEmoji(_ emoji: Model.Emoji, by offset: CGSize, undoManager: UndoManager?) {
 		if let index = emojiArt.emojis.index(matching: emoji) {
-			emojiArt.emojis[index].x += Int(offset.width)
-			emojiArt.emojis[index].y += Int(offset.height)
+			undoablyPerform(operation: "Move", with: undoManager) {
+				emojiArt.emojis[index].x += Int(offset.width)
+				emojiArt.emojis[index].y += Int(offset.height)
+			}
 		}
 	}
 	
 	/// Scale emoji index size
-	func scaleEmoji(_ emoji: Model.Emoji, by scale: CGFloat) {
+	func scaleEmoji(_ emoji: Model.Emoji, by scale: CGFloat, undoManager: UndoManager?) {
 		if let index = emojiArt.emojis.index(matching: emoji) {
-			emojiArt.emojis[index].size = Int((CGFloat(emojiArt.emojis[index].size) * scale).rounded(.toNearestOrAwayFromZero))
+			undoablyPerform(operation: "Scale", with: undoManager) {
+				emojiArt.emojis[index].size = Int((CGFloat(emojiArt.emojis[index].size) * scale).rounded(.toNearestOrAwayFromZero))
+			}
 		}
+	}
+	
+	//MARK: - Undo
+	private func undoablyPerform(operation: String, with undoManager: UndoManager? = nil, doit: () -> Void) {
+		let oldEmojiState = emojiArt
+		doit()
+		undoManager?.registerUndo(withTarget: self) { myself in
+			myself.undoablyPerform(operation: operation, with: undoManager) {
+				myself.emojiArt = oldEmojiState
+			}
+		}
+		undoManager?.setActionName(operation)
 	}
 }
 
@@ -157,15 +143,9 @@ extension EmojiDocument {
 		case fetching
 		case failed(URL)
 	}
-	
-	private struct Autosave {
-		static let filename = "Autosave.emojiart"
-		static var url: URL? {
-			// For iOS we always use a `.userDomainMask`.
-			// In macOS it will be `.network` or other.
-			let document: URL? = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-			return document?.appendingPathComponent(filename)
-		}
-		static let coalescingInterval: Double = 5
-	}
+}
+
+
+extension UTType {
+	static let emojiArt = UTType(exportedAs: "com.nikita.EmojiArt.application")
 }
