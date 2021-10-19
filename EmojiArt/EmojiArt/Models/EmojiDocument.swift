@@ -123,7 +123,7 @@ final class EmojiDocument: ReferenceFileDocument {
 	}
 	
 	//MARK: - Undo
-	private func undoablyPerform(operation: String, with undoManager: UndoManager? = nil, doit: () -> Void) {
+	private func undoablyPerform(operation: String, with undoManager: UndoManager? = nil, doit: Closure) {
 		let oldEmojiState = emojiArt
 		doit()
 		undoManager?.registerUndo(withTarget: self) { myself in

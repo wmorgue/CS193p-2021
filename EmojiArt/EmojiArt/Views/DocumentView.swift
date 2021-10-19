@@ -76,14 +76,42 @@ struct DocumentView: View {
 					zoomToFit(image, in: proxy.size)
 				}
 			}
-			.toolbar {
-				UndoButton(
-					undo: undoManager?.optionalUndoMenuItemTitle,
-					redo: undoManager?.optionalRedoMenuItemTitle
-					)
+			.compactableToolbar {
+				AnimatedActionButton(title: "Paste image", systemImage: "doc.on.clipboard") {
+					pasteBackgroundImage()
+				}
+				
+				// TODO: Make this working!
+//				guard let undoManager = undoManager else { return nil }
+//
+//				switch undoManager {
+//					case .canUndo:
+//						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.backward") {
+//							undoManager.undo()
+//						}
+//					case .canRedo:
+//						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.forward") {
+//							undoManager.redo()
+//						}
+//				}
+				
+				if let undoManager = undoManager {
+					if undoManager.canUndo {
+						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.backward") {
+							undoManager.undo()
+						}
+					}
+
+					if undoManager.canRedo {
+						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.forward") {
+							undoManager.redo()
+						}
+					}
+				}
 			}
 		}
 	}
+	
 	
 	//MARK: Palette on bottom with button
 	var paletteChooser: some View {
@@ -206,6 +234,8 @@ extension DocumentView {
 				dismissButton: .cancel())
 		})
 	}
+	
+	private func pasteBackgroundImage() {}
 }
 
 

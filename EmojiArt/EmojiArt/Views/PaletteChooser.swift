@@ -121,9 +121,7 @@ extension PaletteChooser {
 		}
 		.popover(item: $paletteToEdit) { palette in
 			PaletteEditor(palette: $store.palettes[palette])
+				.wrappedNavigationViewDismiss { paletteToEdit = nil }
 		}
-		//		.popover(isPresented: $editing) {
-		//			PaletteEditor(palette: $store.palettes[chosenPaletteIndex])
-		//		}
 	}
 }

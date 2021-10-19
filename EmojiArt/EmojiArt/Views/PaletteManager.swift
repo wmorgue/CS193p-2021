@@ -35,12 +35,9 @@ struct PaletteManager: View {
 			}
 			.navigationTitle("Manage Palettes")
 			.navigationBarTitleDisplayMode(.inline)
+			.dismissable { dismiss() }
 			.toolbar {
 				ToolbarItem { EditButton() }
-				ToolbarItem(placement: .navigationBarLeading) {
-					Button("Done", action: { dismiss() })
-				}
-				
 			}
 			.environment(\.editMode, $editMode)
 		}

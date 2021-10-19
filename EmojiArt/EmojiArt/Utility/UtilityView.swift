@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 // syntactic sure to be able to pass an optional UIImage to Image
 // (normally it would only take a non-optional UIImage)
 
@@ -31,7 +32,7 @@ struct OptionalImage: View {
 struct AnimatedActionButton: View {
 	var title: String? = nil
 	var systemImage: String? = nil
-	let action: () -> Void
+	let action: Closure
 	
 	var body: some View {
 		Button {
@@ -115,5 +116,64 @@ extension UndoManager {
 	}
 	var optionalRedoMenuItemTitle: String? {
 		canRedo ? redoMenuItemTitle : nil
+	}
+}
+
+extension View {
+	@ViewBuilder
+	func wrappedNavigationViewDismiss(_ dismiss: Closure?) -> some View {
+		let userInterface = UIDevice.current.userInterfaceIdiom
+		
+		switch userInterface {
+			case .phone: NavigationView {
+				self
+					.navigationBarTitleDisplayMode(.inline)
+					.dismissable(dismiss)
+				
+			}
+			.navigationViewStyle(.stack)
+			default: self
+		}
+	}
+	
+	@ViewBuilder
+	func dismissable(_ dismiss: Closure?) -> some View {
+		let userInterface = UIDevice.current.userInterfaceIdiom
+		
+		switch userInterface {
+			case .phone:
+				self.toolbar {
+					ToolbarItem(placement: .cancellationAction) {
+						Button("Close") { dismiss!() }
+					}
+					
+				}
+			default: self
+		}
+	}
+}
+
+struct CompactableIntoContextMenu: ViewModifier {
+	@Environment(\.horizontalSizeClass) var horizontalSizeClass
+	
+	func body(content: Content) -> some View {
+		switch horizontalSizeClass {
+			case .compact:
+				Button {
+					
+				} label: {
+					Image(systemName: "ellipsis.circle")
+				}
+				.contextMenu { content }
+			default: content
+		}
+	}
+}
+
+extension View {
+	func compactableToolbar<Content>(@ViewBuilder content: () -> Content) -> some View where Content: View {
+		self.toolbar {
+			content().modifier(CompactableIntoContextMenu())
+		}
 	}
 }

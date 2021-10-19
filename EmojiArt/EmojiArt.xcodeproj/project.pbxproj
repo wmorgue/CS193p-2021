@@ -17,6 +17,7 @@
 		734B211726F20421000E05FB /* UtilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734B211626F20421000E05FB /* UtilityView.swift */; };
 		734B211926F20479000E05FB /* Utility+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734B211826F20479000E05FB /* Utility+Extension.swift */; };
 		73774D4026FDDBCE005476E8 /* PaletteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73774D3F26FDDBCE005476E8 /* PaletteStore.swift */; };
+		73BF901B271EEA2D0015C735 /* Aliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BF901A271EEA2D0015C735 /* Aliases.swift */; };
 		73C6625E2705A936005EF369 /* PaletteEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C6625D2705A936005EF369 /* PaletteEditor.swift */; };
 		73D43F5026F4B8EC00364AB6 /* PaletteChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D43F4F26F4B8EC00364AB6 /* PaletteChooser.swift */; };
 		73E37A852707154800EFC8CE /* PaletteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73E37A842707154800EFC8CE /* PaletteManager.swift */; };
@@ -35,6 +36,7 @@
 		734B211626F20421000E05FB /* UtilityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilityView.swift; sourceTree = "<group>"; };
 		734B211826F20479000E05FB /* Utility+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Utility+Extension.swift"; sourceTree = "<group>"; };
 		73774D3F26FDDBCE005476E8 /* PaletteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteStore.swift; sourceTree = "<group>"; };
+		73BF901A271EEA2D0015C735 /* Aliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aliases.swift; sourceTree = "<group>"; };
 		73C6625D2705A936005EF369 /* PaletteEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteEditor.swift; sourceTree = "<group>"; };
 		73D43F4F26F4B8EC00364AB6 /* PaletteChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteChooser.swift; sourceTree = "<group>"; };
 		73E37A842707154800EFC8CE /* PaletteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteManager.swift; sourceTree = "<group>"; };
@@ -105,6 +107,7 @@
 			children = (
 				734B211626F20421000E05FB /* UtilityView.swift */,
 				734B211826F20479000E05FB /* Utility+Extension.swift */,
+				73BF901A271EEA2D0015C735 /* Aliases.swift */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -192,6 +195,7 @@
 			files = (
 				7338B20426F0962C008FE0D0 /* Model.Background.swift in Sources */,
 				73E37A852707154800EFC8CE /* PaletteManager.swift in Sources */,
+				73BF901B271EEA2D0015C735 /* Aliases.swift in Sources */,
 				734B211726F20421000E05FB /* UtilityView.swift in Sources */,
 				73C6625E2705A936005EF369 /* PaletteEditor.swift in Sources */,
 				7338B20226F09263008FE0D0 /* Model.swift in Sources */,
