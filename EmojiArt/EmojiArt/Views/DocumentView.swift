@@ -15,6 +15,7 @@ struct DocumentView: View {
 	
 	@State private var autoZoom = false
 	@State private var alertToShow: IdentifiableAlert?
+	@State private var backgroundPicker: BackgroundPickerType?
 	@GestureState private var magnifyBy: CGFloat = 1
 	@GestureState private var gesturePanOffset: CGSize = .zero
 	@ObservedObject var document: EmojiDocument
@@ -38,11 +39,10 @@ struct DocumentView: View {
 	var documentBody: some View {
 		GeometryReader { proxy in
 			ZStack {
-				Color.white.overlay(
-					OptionalImage(uiImage: document.backgroundImage)
-						.scaleEffect(zoomScale)
-						.position(convertFromEmojiCoordinates((0,0), in: proxy))
-				)
+				Color.white
+				OptionalImage(uiImage: document.backgroundImage)
+					.scaleEffect(zoomScale)
+					.position(convertFromEmojiCoordinates((0,0), in: proxy))
 					.gesture(doubleTapToZoom(in: proxy.size))
 				
 				if document.backgroundImageFetchStatus == .fetching {
@@ -77,23 +77,21 @@ struct DocumentView: View {
 				}
 			}
 			.compactableToolbar {
-				AnimatedActionButton(title: "Paste image", systemImage: "doc.on.clipboard") {
+				AnimatedActionButton(title: "Paste background", systemImage: "doc.on.clipboard") {
 					pasteBackgroundImage()
 				}
 				
-				// TODO: Make this working!
-//				guard let undoManager = undoManager else { return nil }
-//
-//				switch undoManager {
-//					case .canUndo:
-//						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.backward") {
-//							undoManager.undo()
-//						}
-//					case .canRedo:
-//						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.forward") {
-//							undoManager.redo()
-//						}
-//				}
+				if Camera.isAvailable {
+					AnimatedActionButton(title: "Take Photo", systemImage: "camera") {
+						backgroundPicker = .camera
+					}
+				}
+				
+				if PhotoLibrary.isAvailable {
+					AnimatedActionButton(title: "Search Photos", systemImage: "photo") {
+						backgroundPicker = .library
+					}
+				}
 				
 				if let undoManager = undoManager {
 					if undoManager.canUndo {
@@ -101,12 +99,31 @@ struct DocumentView: View {
 							undoManager.undo()
 						}
 					}
-
+					
 					if undoManager.canRedo {
 						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.forward") {
 							undoManager.redo()
 						}
 					}
+				}
+				// TODO: Make this working!
+				//				guard let undoManager = undoManager else { return nil }
+				//
+				//				switch undoManager {
+				//					case .canUndo:
+				//						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.backward") {
+				//							undoManager.undo()
+				//						}
+				//					case .canRedo:
+				//						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.forward") {
+				//							undoManager.redo()
+				//						}
+				//				}
+			}
+			.sheet(item: $backgroundPicker) { pickerType in
+				switch pickerType {
+					case .camera: Camera(handlePickedImage: { image in handlePickedBackgroundImage(image) })
+					case .library: PhotoLibrary(handlePickedImage: { photo in handlePickedBackgroundImage(photo) })
 				}
 			}
 		}
@@ -116,7 +133,6 @@ struct DocumentView: View {
 	//MARK: Palette on bottom with button
 	var paletteChooser: some View {
 		PaletteChooser()
-		//			.font(.system(size: defaultFontSize))
 			.padding(.top)
 			.background(.thinMaterial)
 	}
@@ -124,6 +140,20 @@ struct DocumentView: View {
 
 
 extension DocumentView {
+	enum BackgroundPickerType: Identifiable {
+		var id: BackgroundPickerType { self }
+		case camera
+		case library
+	}
+	
+	private func handlePickedBackgroundImage(_ image: UIImage?) {
+		autoZoom = true
+		if let imageData = image?.jpegData(compressionQuality: 1.0) {
+			document.setBackground(.imageData(imageData), undoManager: undoManager)
+		}
+		backgroundPicker = nil
+	}
+	
 	//MARK: Methods
 	private func dropOnView(provider: [NSItemProvider], at location: CGPoint, in geometry: GeometryProxy) -> Bool {
 		var found = provider.loadObjects(ofType: URL.self) { url in
@@ -235,7 +265,20 @@ extension DocumentView {
 		})
 	}
 	
-	private func pasteBackgroundImage() {}
+	// Pasteboard logic to set background from Image or URL
+	private func pasteBackgroundImage() {
+		autoZoom = true
+		
+		if let imageData = UIPasteboard.general.image?.jpegData(compressionQuality: 1.0) {
+			document.setBackground(.imageData(imageData), undoManager: undoManager)
+		} else if let url = UIPasteboard.general.url?.imageURL {
+			document.setBackground(.url(url), undoManager: undoManager)
+		} else {
+			alertToShow = IdentifiableAlert(
+				title: "Paste background",
+				message: "There is no image currently on pasteboard.")
+		}
+	}
 }
 
 
