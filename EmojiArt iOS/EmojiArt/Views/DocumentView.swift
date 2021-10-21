@@ -58,7 +58,7 @@ struct DocumentView: View {
 				}
 			}
 			.clipped()
-			.onDrop(of: [.plainText, .url, .image], isTargeted: nil) { provider, location in
+			.onDrop(of: [.utf8PlainText, .url, .image], isTargeted: nil) { provider, location in
 				dropOnView(provider: provider, at: location, in: proxy)
 			}
 			.gesture(panGesture().simultaneously(with: zoomGesture()))
@@ -77,7 +77,7 @@ struct DocumentView: View {
 				}
 			}
 			.compactableToolbar {
-				AnimatedActionButton(title: "Paste background", systemImage: "doc.on.clipboard") {
+				AnimatedActionButton(title: "Paste Background", systemImage: "doc.on.clipboard") {
 					pasteBackgroundImage()
 				}
 				
@@ -93,6 +93,7 @@ struct DocumentView: View {
 					}
 				}
 				
+#if os(iOS)
 				if let undoManager = undoManager {
 					if undoManager.canUndo {
 						AnimatedActionButton(title: undoManager.undoActionName, systemImage: "arrow.uturn.backward") {
@@ -106,6 +107,7 @@ struct DocumentView: View {
 						}
 					}
 				}
+#endif
 				// TODO: Make this working!
 				//				guard let undoManager = undoManager else { return nil }
 				//
@@ -133,8 +135,10 @@ struct DocumentView: View {
 	//MARK: Palette on bottom with button
 	var paletteChooser: some View {
 		PaletteChooser()
+#if os(iOS)
 			.padding(.top)
 			.background(.thinMaterial)
+#endif
 	}
 }
 
@@ -148,7 +152,7 @@ extension DocumentView {
 	
 	private func handlePickedBackgroundImage(_ image: UIImage?) {
 		autoZoom = true
-		if let imageData = image?.jpegData(compressionQuality: 1.0) {
+		if let imageData = image?.imageData {
 			document.setBackground(.imageData(imageData), undoManager: undoManager)
 		}
 		backgroundPicker = nil
@@ -161,6 +165,7 @@ extension DocumentView {
 			document.setBackground(.url(url.imageURL), undoManager: undoManager)
 		}
 		
+#if os(iOS)
 		if !found {
 			found = provider.loadObjects(ofType: UIImage .self) { image in
 				if let data = image.jpegData(compressionQuality: 1.0) {
@@ -169,6 +174,7 @@ extension DocumentView {
 				}
 			}
 		}
+#endif
 		
 		if !found {
 			found = provider.loadObjects(ofType: String.self) { string in
@@ -269,9 +275,9 @@ extension DocumentView {
 	private func pasteBackgroundImage() {
 		autoZoom = true
 		
-		if let imageData = UIPasteboard.general.image?.jpegData(compressionQuality: 1.0) {
+		if let imageData = Pasteboard.imageData {
 			document.setBackground(.imageData(imageData), undoManager: undoManager)
-		} else if let url = UIPasteboard.general.url?.imageURL {
+		} else if let url = Pasteboard.url {
 			document.setBackground(.url(url), undoManager: undoManager)
 		} else {
 			alertToShow = IdentifiableAlert(

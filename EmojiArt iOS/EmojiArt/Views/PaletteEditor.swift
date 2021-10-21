@@ -13,16 +13,27 @@ struct PaletteEditor: View {
 	
 	var body: some View {
 		List {
-			Section("Name") {
+			Section(header: Text("Name")) {
+				#if os(iOS)
 				TextField("Name", text: $palette.name, prompt: Text("Type a new name for palette"))
+				#else
+				TextField("Name", text: $palette.name)
+				#endif
 			}
-			Section("Add emoji") {
+			Section(header: Text("Add emoji")) {
+				#if os(iOS)
 				TextField("", text: $emptyBinding, prompt: Text("Insert a new emoji"))
 					.onChange(of: emptyBinding) { emojis in
 						insertNewEmojis(emojis)
 					}
+				#else
+				TextField("", text: $emptyBinding)
+					.onChange(of: emptyBinding) { emojis in
+						insertNewEmojis(emojis)
+					}
+				#endif
 			}
-			Section("Delete emoji") {
+			Section(header: Text("Delete emoji")) {
 				let emojis = palette.emojis.removingDuplicateCharacters.map { String($0) }
 				
 				LazyVGrid(columns: [GridItem(.adaptive(minimum: 40))]) {

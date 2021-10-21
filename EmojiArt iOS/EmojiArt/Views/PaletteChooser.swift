@@ -67,10 +67,11 @@ extension PaletteChooser {
 		}
 		
 		// Palette Manager
+#if os(iOS)
 		AnimatedActionButton(title: "Manage", systemImage: "slider.horizontal.3") {
 			managing.toggle()
 		}
-		
+#endif
 		// Go to
 		gotoMenu
 	}
@@ -98,6 +99,7 @@ extension PaletteChooser {
 			Image(systemName: "paintpalette")
 		}
 		.font(emojiFont)
+		.paletteControlButtonStyle()
 		.contextMenu { contexMenu }
 	}
 	
@@ -121,6 +123,7 @@ extension PaletteChooser {
 		}
 		.popover(item: $paletteToEdit) { palette in
 			PaletteEditor(palette: $store.palettes[palette])
+				.popoverPadding()
 				.wrappedNavigationViewDismiss { paletteToEdit = nil }
 		}
 	}

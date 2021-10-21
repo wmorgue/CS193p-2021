@@ -136,53 +136,24 @@ extension UndoManager {
 	}
 }
 
-extension View {
-	@ViewBuilder
-	func wrappedNavigationViewDismiss(_ dismiss: Closure?) -> some View {
-		let userInterface = UIDevice.current.userInterfaceIdiom
-		
-		switch userInterface {
-			case .phone: NavigationView {
-				self
-					.navigationBarTitleDisplayMode(.inline)
-					.dismissable(dismiss)
-				
-			}
-			.navigationViewStyle(.stack)
-			default: self
-		}
-	}
-	
-	@ViewBuilder
-	func dismissable(_ dismiss: Closure?) -> some View {
-		let userInterface = UIDevice.current.userInterfaceIdiom
-		
-		switch userInterface {
-			case .phone:
-				self.toolbar {
-					ToolbarItem(placement: .cancellationAction) {
-						Button("Close") { dismiss!() }
-					}
-					
-				}
-			default: self
-		}
-	}
-}
-
 struct CompactableIntoContextMenu: ViewModifier {
+	#if os(iOS)
 	@Environment(\.horizontalSizeClass) var horizontalSizeClass
+	var compact: Bool { horizontalSizeClass == .compact}
+	#else
+	let compact = false
+	#endif
 	
 	func body(content: Content) -> some View {
-		switch horizontalSizeClass {
-			case .compact:
+		switch compact {
+			case true:
 				Button {
 					
 				} label: {
 					Image(systemName: "ellipsis.circle")
 				}
 				.contextMenu { content }
-			default: content
+			case false: content
 		}
 	}
 }
