@@ -1,7 +1,12 @@
 # [CS193p - Developing Apps for iOS]
 
 
-This repository contains all lecture's and homework from CS193p 2021
+This repository contains all lecture's and homework from CS193p 2021. Application included:
+
+1. Memorize
+2. EmojiArt iOS
+3. EmojiArt Multiplatform
+4. Enroute (REST API, Codable, CoreData)
 
 
 
